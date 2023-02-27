@@ -29,7 +29,7 @@ jobs:
       - name: Build stage 1
         uses: docker/build-push-action@v3
         with:
-          context: docker-stage1
+          context: docker
           file: docker/Dockerfile
           cache-from: type=gha,scope=ug-chromium-stage1
           cache-to: type=gha,scope=ug-chromium-stage1,mode=max
