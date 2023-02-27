@@ -31,8 +31,8 @@ jobs:
         with:
           context: docker
           file: docker/Dockerfile
-          cache-from: type=gha,scope=ug-chromium-stage1
-          cache-to: type=gha,scope=ug-chromium-stage1,mode=max
+          cache-from: type=gha,scope=ug-chromium
+          cache-to: type=gha,scope=ug-chromium,mode=max
           load: true
           tags: |
             ug-chromium-builder:${{ steps.gitref_tag.outputs.tag }}
