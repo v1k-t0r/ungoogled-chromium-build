@@ -39,7 +39,7 @@ RUN apt-get -y install --no-install-recommends bison debhelper desktop-file-util
  libjsoncpp-dev libkrb5-dev liblcms2-dev libminizip-dev libmodpbase64-dev libnspr4-dev libnss3-dev libopenjp2-7-dev libopus-dev libpam0g-dev libpci-dev libpng-dev libpulse-dev\
  libre2-dev libsnappy-dev libspeechd-dev libudev-dev libusb-1.0-0-dev libva-dev libvpx-dev libwebp-dev libx11-xcb-dev libxcb-dri3-dev libxshmfence-dev libxslt1-dev libxss-dev\
  libxt-dev libxtst-dev mesa-common-dev ninja-build pkg-config python3-jinja2 python3-xcbgen python-is-python3 python-setuptools qtbase5-dev uuid-dev valgrind wdiff x11-apps\
- xcb-proto xfonts-base xvfb xz-utils yasm
+ xcb-proto xfonts-base xvfb xz-utils yasm fuse libfuse2
 # update npm
 RUN npm update -g npm
 
