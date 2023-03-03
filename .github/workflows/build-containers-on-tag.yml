@@ -33,6 +33,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Get tag from actions context
+        run: echo "DOCKER_IMAGE_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
       - name: Build image
         uses: docker/build-push-action@v3
         with:
@@ -42,7 +45,7 @@ jobs:
           cache-to: type=gha,scope=ug-chromium,mode=max
           load: true
           tags: |
-            ug-chromium-builder:${{env.GITHUB_REF_NAME}}
+            ug-chromium-builder:${{env.DOCKER_IMAGE_TAG}}
             ug-chromium-builder:latest
 
   build-browser:
@@ -52,7 +55,7 @@ jobs:
     steps:
       - name: Browser build stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:${{env.GITHUB_REF_NAME}} bash -c "./build.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{env.DOCKER_IMAGE_TAG}} bash -c "./build.sh"
 
   package-browser:
     needs: build-browser
@@ -60,7 +63,7 @@ jobs:
     steps:
       - name: Browser package stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:${{env.GITHUB_REF_NAME}} bash -c "cd package && ./package.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{env.DOCKER_IMAGE_TAG}} bash -c "cd package && ./package.sh"
 
   create-release:
     if: needs.build-browser.result == 'success'
