@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Browser build stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:$DOCKER_IMAGE_TAG bash -c "./build.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ github.ref_name }} bash -c "./build.sh"
 
   package-browser:
     needs: build-browser
@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Browser package stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:$DOCKER_IMAGE_TAG bash -c "cd package && ./package.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ github.ref_name }} bash -c "cd package && ./package.sh"
 
   create-release:
     if: needs.build-browser.result == 'success'
