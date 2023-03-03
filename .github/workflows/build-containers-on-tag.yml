@@ -20,6 +20,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
 
   build-container-image:
+    needs: start-builder
     runs-on: self-hosted
     steps:
       - name: cleanup #https://github.com/actions/checkout/issues/211
@@ -45,6 +46,7 @@ jobs:
             ug-chromium-builder:latest
 
   build-browser:
+    needs: build-container-image
     timeout-minutes: 900
     runs-on: self-hosted
     steps:
@@ -53,6 +55,7 @@ jobs:
           docker run -v `pwd`:/repo:z ug-chromium-builder:${GITHUB_REF_NAME} bash -c "./build.sh"
 
   package-browser:
+    needs: build-browser
     runs-on: self-hosted
     steps:
       - name: Browser package stage
@@ -60,6 +63,8 @@ jobs:
           docker run -v `pwd`:/repo:z ug-chromium-builder:${GITHUB_REF_NAME} bash -c "cd package && ./package.sh"
 
   create-release:
+    if: needs.build-browser.result == 'success'
+    needs: [build-browser, package-browser]
     runs-on: self-hosted
     steps:
       - name: Upload release
