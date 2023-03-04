@@ -79,7 +79,7 @@ jobs:
           omitBodyDuringUpdate: false
           omitName: true
           omitNameDuringUpdate: true
-          tag: $GITHUB_REF_NAME
+          tag: ${{ github.ref_name }}
 
   stop-builder:
     if: always()
