@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export APPIMAGE_EXTRACT_AND_RUN=1
+
 CURRENT_DIR=$(dirname $(readlink -f $0))
 
 PACKAGE_START=$(date)

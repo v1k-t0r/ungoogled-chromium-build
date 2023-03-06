@@ -2,13 +2,25 @@
 name: Build Tagged Image
 
 on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
   push:
     tags:
       - "*"
 
 jobs:
-  build-containers-on-tag:
-    timeout-minutes: 900
+  start-builder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start AWS EC2
+        run: |
+          aws ec2 start-instances --instance-ids ${{ vars.AWS_EC2_INSTANCE_ID }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+
+  build-container-image:
+    needs: start-builder
     runs-on: self-hosted
     steps:
       - name: cleanup #https://github.com/actions/checkout/issues/211
@@ -18,34 +30,46 @@ jobs:
         uses: actions/checkout@v2
       - name: Checkout submodules
         run: git submodule update --init --recursive
-
-      - name: Get tag from actions context
-        id: gitref_tag
-        run: echo ::set-output name=tag::${GITHUB_REF##*/}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build stage 1
+      - name: Get tag from actions context
+        run: echo "DOCKER_IMAGE_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
+      - name: Build image
         uses: docker/build-push-action@v3
         with:
-          context: docker-stage1
+          context: docker
           file: docker/Dockerfile
-          cache-from: type=gha,scope=ug-chromium-stage1
-          cache-to: type=gha,scope=ug-chromium-stage1,mode=max
+          cache-from: type=gha,scope=ug-chromium
+          cache-to: type=gha,scope=ug-chromium,mode=max
           load: true
           tags: |
-            ug-chromium-builder:${{ steps.gitref_tag.outputs.tag }}
+            ug-chromium-builder:${{env.DOCKER_IMAGE_TAG}}
             ug-chromium-builder:latest
 
+  build-browser:
+    needs: build-container-image
+    timeout-minutes: 900
+    runs-on: self-hosted
+    steps:
       - name: Browser build stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ steps.gitref_tag.outputs.tag }} bash -c "./build.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ github.ref_name }} bash -c "./build.sh"
 
+  package-browser:
+    needs: build-browser
+    runs-on: self-hosted
+    steps:
       - name: Browser package stage
         run: |
-          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ steps.gitref_tag.outputs.tag }} bash -c "cd package && ./package.sh"
+          docker run -v `pwd`:/repo:z ug-chromium-builder:${{ github.ref_name }} bash -c "cd package && ./package.sh"
 
+  create-release:
+    if: needs.build-browser.result == 'success'
+    needs: [build-browser, package-browser]
+    runs-on: self-hosted
+    steps:
       - name: Upload release
         uses: ncipollo/release-action@v1
         with:
@@ -55,4 +79,17 @@ jobs:
           omitBodyDuringUpdate: false
           omitName: true
           omitNameDuringUpdate: true
-          tag: ${{ steps.gitref_tag.outputs.tag }}
+          tag: ${{ github.ref_name }}
+
+  stop-builder:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - name: Stop AWS EC2
+        run: |
+          aws ec2 stop-instances --instance-ids ${{ vars.AWS_EC2_INSTANCE_ID }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
