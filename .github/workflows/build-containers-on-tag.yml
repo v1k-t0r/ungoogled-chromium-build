@@ -39,8 +39,6 @@ jobs:
     needs: prepare
     runs-on: self-hosted
     steps:
-      - env:
-          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build image
@@ -54,35 +52,35 @@ jobs:
           tags: |
             ug-chromium-builder:${{env.DOCKER_IMAGE_TAG}}
             ug-chromium-builder:latest
+        env:
+          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
 
   build-browser:
     needs: [prepare, build-container-image]
     timeout-minutes: 900
     runs-on: self-hosted
     steps:
-      - env:
-          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
       - name: Browser build stage
         run: |
           docker run -v `pwd`:/repo:z ug-chromium-builder:$DOCKER_IMAGE_TAG bash -c "./build.sh"
+        env:
+          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
 
   package-browser:
     needs: [prepare, build-browser]
     runs-on: self-hosted
     steps:
-      - env:
-          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
       - name: Browser package stage
         run: |
           docker run -v `pwd`:/repo:z ug-chromium-builder:$DOCKER_IMAGE_TAG bash -c "cd package && ./package.sh"
+        env:
+          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
 
   create-release:
     if: needs.build-browser.result == 'success'
     needs: [prepare, build-browser, package-browser]
     runs-on: self-hosted
     steps:
-      - env:
-          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
       - name: Upload release
         uses: ncipollo/release-action@v1
         with:
@@ -93,6 +91,8 @@ jobs:
           omitName: true
           omitNameDuringUpdate: true
           tag: ${{env.DOCKER_IMAGE_TAG}}
+        env:
+          DOCKER_IMAGE_TAG: ${{needs.prepare.outputs.output1}}
 
   stop-builder:
     if: always()
