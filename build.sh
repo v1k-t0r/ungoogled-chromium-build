@@ -28,7 +28,7 @@ mkdir -p "${src_dir}/out/Default" "${download_cache}"
 "${main_repo}/utils/downloads.py" retrieve -i "${main_repo}/downloads.ini" -c "${download_cache}"
 "${main_repo}/utils/downloads.py" unpack -i "${main_repo}/downloads.ini" -c "${download_cache}" "${src_dir}"
 
-# prepare sources 
+# prepare sources
 # ==================================================
 ## apply own patches needed for build
 cd "${src_dir}"
@@ -36,7 +36,7 @@ cd "${src_dir}"
 patch -Rp1 -i ${patches_dir}/REVERT-clang-version-check.patch
 # revert addition of compiler flag that needs newer clang (taken from ungoogled-chromium-archlinux)
 patch -Rp1 -i ${patches_dir}/REVERT-disable-autoupgrading-debug-info.patch
-# use the --oauth2-client-id= and --oauth2-client-secret= switches for setting GOOGLE_DEFAULT_CLIENT_ID 
+# use the --oauth2-client-id= and --oauth2-client-secret= switches for setting GOOGLE_DEFAULT_CLIENT_ID
 # and GOOGLE_DEFAULT_CLIENT_SECRET at runtime (taken from ungoogled-chromium-archlinux)
 patch -Np1 -i ${patches_dir}/use-oauth2-client-switches-as-default.patch
 # Disable kGlobalMediaControlsCastStartStop by default
