@@ -23,6 +23,8 @@ example: `./docker-build.sh ubuntu:yammy 16 19`
 
 I do not recommend to try to call `build.sh` directly. This will only work if you have a debian or ubuntu installation with all the packages installed and at the same place on your machine as in the docker image. It's the idea behind this build that you do NOT need to manipulate your own linux installation to build ungoogled-chromium.
 
+I do not recommend to try to call `build.sh` directly. This will only work if you have a debian or ubuntu installation with all the packages installed and at the same place on your machine as in the docker image. It's the idea behind this build that you do NOT need to manipulate your own linux installation to build ungoogled-chromium.
+
 ## packaging
 After building, enter the `package` directory and excute `package.sh`. This will create a `tar.xz` and an `AppImage` file in the root dir. It takes about 2-3 minutes.
 You may use the `prepare-publish.sh` script to create commits in the `ungoogled-chromium-binaries` fork for a pull request in the origin [ungoogled-chromium-binaries](https://github.com/ungoogled-software/ungoogled-chromium-binaries) repo. Therefor adjust the paths at the beginning of the script to match the paths to the according repos in your filesystem.
