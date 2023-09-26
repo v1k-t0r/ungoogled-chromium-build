@@ -17,9 +17,9 @@ jobs:
         run: |
           sudo chown -R $USER:$USER $GITHUB_WORKSPACE
       - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Checkout submodules
-        run: git submodule update --remote --merge
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - id: tagging
         run: echo "chromium_tag=$(echo -n $(cat ungoogled-chromium/chromium_version.txt))" >> $GITHUB_OUTPUT
 
